@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="http://schemas.android.com/tools">
+    <color name="error_red">#B43232</color>
+    <color name="film_glow">#E9D5A1</color>
+    <color name="film_warm">#C8A467</color>
+    <color name="ink_primary">#0E1116</color>
+    <color name="ink_secondary">#3A3F4A</color>
+    <color name="paper">#F5EFDF</color>
+    <color name="paper_dim">#E2DCC8</color>
+    <string name="action_export">导出 JPEG</string>
+    <string name="action_import_negative">导入为新层</string>
+    <string name="action_new_project">新建项目</string>
+    <string name="action_open_camera">进入取景</string>
+    <string name="action_pick_images">从相册选</string>
+    <string name="action_save_to_gallery">保存到相册</string>
+    <string name="app_name">BiFilm</string>
+    <string name="cd_layer_thumb">图层缩略图</string>
+    <string name="cd_mask_canvas">蒙版画布</string>
+    <string name="cd_shutter">快门</string>
+    <string name="hint_camera_permission">需要相机权限以使用实时取景</string>
+    <string name="hint_no_projects">还没有项目，先新建一个开始玩多重曝光</string>
+    <string name="hint_pick_layers">从相册挑选 2~9 张图，按顺序叠加</string>
+    <string name="label_blend_mode">混合模式</string>
+    <string name="label_exposure">曝光档</string>
+    <string name="label_frame_count">张数</string>
+    <string name="label_mask_hardness">蒙版硬度</string>
+    <string name="label_opacity">不透明度</string>
+    <string name="msg_error_no_camera">未检测到可用相机</string>
+    <string name="msg_exported">已导出到相册</string>
+    <string name="msg_project_saved">项目已保存</string>
+    <string name="title_capture">实时取景</string>
+    <string name="title_compose">后期合成</string>
+    <string name="title_export">导出</string>
+    <string name="title_home">多曝项目</string>
+    <string name="title_settings">设置</string>
+    <style name="Theme.BiFilm" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor" ns1:targetApi="21">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" ns1:targetApi="23">true</item>
+        <item name="android:navigationBarColor" ns1:targetApi="21">@android:color/transparent</item>
+    </style>
+</resources>

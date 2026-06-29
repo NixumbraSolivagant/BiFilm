@@ -1,0 +1,9 @@
+<resources>
+    <color name="ink_primary">#0E1116</color>
+    <color name="ink_secondary">#3A3F4A</color>
+    <color name="film_warm">#C8A467</color>
+    <color name="film_glow">#E9D5A1</color>
+    <color name="paper">#F5EFDF</color>
+    <color name="paper_dim">#E2DCC8</color>
+    <color name="error_red">#B43232</color>
+</resources>

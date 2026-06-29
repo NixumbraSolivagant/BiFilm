@@ -1,0 +1,30 @@
+[
+    {
+        "merged": "com.bifilm.app-merged_res-67:/raw_blend_frag.flat",
+        "source": "com.bifilm.app-main-69:/raw/blend_frag"
+    },
+    {
+        "merged": "com.bifilm.app-merged_res-67:/xml_backup_rules.xml.flat",
+        "source": "com.bifilm.app-main-69:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.bifilm.app-merged_res-67:/raw_blend_agsl.flat",
+        "source": "com.bifilm.app-main-69:/raw/blend_agsl"
+    },
+    {
+        "merged": "com.bifilm.app-merged_res-67:/xml_data_extraction_rules.xml.flat",
+        "source": "com.bifilm.app-main-69:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.bifilm.app-merged_res-67:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.bifilm.app-main-69:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.bifilm.app-merged_res-67:/raw_blend_vert.flat",
+        "source": "com.bifilm.app-main-69:/raw/blend_vert"
+    },
+    {
+        "merged": "com.bifilm.app-merged_res-67:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.bifilm.app-main-69:/mipmap-anydpi-v26/ic_launcher.xml"
+    }
+]

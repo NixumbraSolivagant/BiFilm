@@ -1,0 +1,44 @@
+// OpenGL ES 2.0 fragment shader: 与 AGSL 版同语义.
+// 用于 API 26~32 设备 (M6).
+//
+// Uniforms:
+uniform sampler2D uAccumulated;
+uniform sampler2D uIncoming;
+uniform sampler2D uMaskIncoming;
+uniform int uMode;
+uniform float uOpacity;
+uniform float uExposureGain;
+uniform vec2 uSize;
+
+varying vec2 vTexCoord;
+
+vec4 blendPixel(vec4 a, vec4 b, int mode) {
+    if (mode == 0) {
+        // Screen
+        return vec4(1.0) - (vec4(1.0) - a) * (vec4(1.0) - b);
+    } else if (mode == 1) {
+        // Additive
+        return a + b;
+    } else if (mode == 2) {
+        // Multiply
+        return a * b;
+    } else if (mode == 3) {
+        // Lighten
+        return max(a, b);
+    } else if (mode == 4) {
+        // Darken
+        return min(a, b);
+    } else {
+        // Average
+        return (a + b) * 0.5;
+    }
+}
+
+void main() {
+    vec4 a = texture2D(uAccumulated, vTexCoord);
+    vec4 b = texture2D(uIncoming, vTexCoord) * uExposureGain;
+    float m = texture2D(uMaskIncoming, vTexCoord).a;
+
+    vec4 mixed = blendPixel(a, b, uMode);
+    gl_FragColor = mix(a, mixed, m * uOpacity);
+}
