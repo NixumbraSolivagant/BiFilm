@@ -25,16 +25,21 @@ class HomeViewModel(
         )
 
     fun createProject() {
+        createProjectWith(frameCount = DEFAULT_FRAME_COUNT)
+    }
+
+    fun createProjectWith(frameCount: Int, onProjectCreated: (String) -> Unit = ::onProjectCreatedInternal) {
+        val now = System.currentTimeMillis()
+        val id = UUID.randomUUID().toString()
+        val coerced = frameCount.coerceIn(2, 8)
         viewModelScope.launch {
-            val now = System.currentTimeMillis()
-            val id = UUID.randomUUID().toString()
             projectDao.upsert(
                 ProjectEntity(
                     id = id,
                     title = "新项目 ${now % 10000}",
                     createdAt = now,
                     updatedAt = now,
-                    frameCount = 2,
+                    frameCount = coerced,
                     frameWidth = 1080,
                     frameHeight = 1920,
                     thumbnailPath = null
@@ -43,6 +48,8 @@ class HomeViewModel(
             onProjectCreated(id)
         }
     }
+
+    private fun onProjectCreatedInternal(id: String) = onProjectCreated(id)
 
     fun rename(project: ProjectEntity, newTitle: String) {
         viewModelScope.launch {
@@ -71,5 +78,10 @@ class HomeViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
             HomeViewModel(container.database.projectDao(), onProjectCreated) as T
+    }
+
+    companion object {
+        val FRAME_COUNT_PRESETS = listOf(2, 3, 4, 6, 8)
+        private const val DEFAULT_FRAME_COUNT = 2
     }
 }

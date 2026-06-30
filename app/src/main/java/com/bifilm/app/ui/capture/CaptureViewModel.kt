@@ -10,6 +10,7 @@ import com.bifilm.app.data.db.ProjectEntity
 import com.bifilm.app.data.image.ImageStore
 import com.bifilm.app.di.AppContainer
 import com.bifilm.app.domain.model.BlendMode
+import com.bifilm.app.domain.usecase.AddLayerUseCase
 import com.bifilm.app.render.camera.CameraFrameBridge
 import com.bifilm.app.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +35,7 @@ class CaptureViewModel(
     private val projectDao: ProjectDao,
     private val layerDao: LayerDao,
     private val imageStore: ImageStore,
+    private val addLayerUseCase: AddLayerUseCase,
     cameraFactory: () -> CameraFrameBridge
 ) : ViewModel() {
 
@@ -59,6 +61,15 @@ class CaptureViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    init {
+        viewModelScope.launch {
+            val entity = projectDao.findById(projectId)
+            if (entity != null && entity.frameCount >= 2) {
+                _frameCount.value = entity.frameCount.coerceIn(2, 8)
+            }
+        }
+    }
 
     private val _frameCount = MutableStateFlow(2)
     val frameCount: StateFlow<Int> = _frameCount.asStateFlow()
@@ -113,6 +124,21 @@ class CaptureViewModel(
         }
     }
 
+    /** 用户从相册挑了一张图, 走 AddLayerUseCase 加一层. */
+    fun importImage(uri: android.net.Uri) {
+        if (_state.value == SessionState.Capturing) return
+        viewModelScope.launch {
+            _state.value = SessionState.Capturing
+            try {
+                addLayerUseCase(projectId, uri)
+                _state.value = SessionState.LivePreview
+            } catch (t: Throwable) {
+                Logger.e(TAG, "importImage failed", t)
+                _state.value = SessionState.Error("import failed: ${t.message}")
+            }
+        }
+    }
+
     private suspend fun insertLayerFromFile(file: File) {
         val order = (layerDao.listForProject(projectId).maxOfOrNull { it.order } ?: -1) + 1
         val layer = LayerEntity(
@@ -162,6 +188,7 @@ class CaptureViewModel(
             projectDao = container.database.projectDao(),
             layerDao = container.database.layerDao(),
             imageStore = container.imageStore,
+            addLayerUseCase = container.addLayerUseCase,
             cameraFactory = { CameraFrameBridge(contextProvider()) }
         ) as T
     }

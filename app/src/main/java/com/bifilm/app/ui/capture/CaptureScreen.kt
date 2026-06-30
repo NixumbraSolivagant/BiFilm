@@ -4,7 +4,11 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.camera.view.PreviewView
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bifilm.app.BiFilmApp
 import com.bifilm.app.R
@@ -51,7 +55,6 @@ import com.bifilm.app.ui.capture.components.ApertureIndicator
 import com.bifilm.app.ui.capture.components.ExposurePicker
 import com.bifilm.app.ui.capture.components.FrameCountPicker
 import com.bifilm.app.ui.capture.components.ShutterButton
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +77,12 @@ fun CaptureScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> hasCameraPermission = granted }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) viewModel.importImage(uri)
+    }
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -175,6 +184,20 @@ fun CaptureScreen(
                         isEnabled = currentState !is CaptureViewModel.SessionState.Capturing
                     )
                 }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        pickImageLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = currentState !is CaptureViewModel.SessionState.Capturing
+                ) {
+                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.action_pick_images))
+                }
             }
         }
     }
@@ -187,31 +210,35 @@ private fun CameraPreview(
     modifier: Modifier = Modifier
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val surfaceHolder = remember { SurfaceProviderHolder() }
     AndroidView(
         modifier = modifier,
         factory = { ctx ->
             PreviewView(ctx).apply {
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 scaleType = PreviewView.ScaleType.FILL_CENTER
-            }
-        },
-        update = { previewView ->
-            previewView.post {
-                lifecycleOwner.lifecycleScope.launch {
-                    try {
-                        bridge.startPreview(
-                            lifecycleOwner = lifecycleOwner,
-                            surfaceProvider = previewView.surfaceProvider
-                        )
-                        onCameraStarted()
-                    } catch (t: Throwable) {
-                        com.bifilm.app.util.Logger.e("CameraPreview", "start failed", t)
-                    }
-                }
+                surfaceHolder.previewView = this
             }
         }
     )
+    LaunchedEffect(lifecycleOwner, bridge) {
+        val holder = surfaceHolder.previewView ?: return@LaunchedEffect
+        val surfaceProvider = holder.surfaceProvider
+        try {
+            bridge.startPreview(
+                lifecycleOwner = lifecycleOwner,
+                surfaceProvider = surfaceProvider
+            )
+            onCameraStarted()
+        } catch (t: Throwable) {
+            com.bifilm.app.util.Logger.e("CameraPreview", "start failed", t)
+        }
+    }
     DisposableEffect(Unit) {
         onDispose { bridge.shutdown() }
     }
+}
+
+private class SurfaceProviderHolder {
+    var previewView: PreviewView? = null
 }

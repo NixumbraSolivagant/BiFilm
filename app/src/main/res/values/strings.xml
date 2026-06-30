@@ -18,6 +18,7 @@
     <string name="hint_camera_permission">需要相机权限以使用实时取景</string>
 
     <string name="label_blend_mode">混合模式</string>
+    <string name="label_scene">场景</string>
     <string name="label_frame_count">张数</string>
     <string name="label_exposure">曝光档</string>
     <string name="label_opacity">不透明度</string>
@@ -30,4 +31,12 @@
     <string name="msg_exported">已导出到相册</string>
     <string name="msg_project_saved">项目已保存</string>
     <string name="msg_error_no_camera">未检测到可用相机</string>
+
+    <!-- 新增: Compose 屏分组 / 标题 / 提示 -->
+    <string name="header_scene">场景</string>
+    <string name="header_layers">图层（%1$d）</string>
+    <string name="header_color">画面</string>
+    <string name="color_color">彩色</string>
+    <string name="color_mono">黑白</string>
+    <string name="hint_no_layers">还没有图层，去拍照页拍两张再回来</string>
 </resources>

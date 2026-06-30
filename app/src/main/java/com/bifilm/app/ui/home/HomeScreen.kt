@@ -20,21 +20,29 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +55,7 @@ import com.bifilm.app.BiFilmApp
 import com.bifilm.app.R
 import com.bifilm.app.data.db.ProjectEntity
 import com.bifilm.app.ui.common.EmptyState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +70,10 @@ fun HomeScreen(
     }
     val navigateCompose = remember(onOpenCompose) { { id: String -> onOpenCompose(id) } }
     val navigateCapture = remember(onOpenCapture) { { id: String -> onOpenCapture(id) } }
+    val coroutineScope = rememberCoroutineScope()
+
+    var showNewProjectSheet by rememberSaveable { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val viewModel: HomeViewModel = viewModel(
         factory = HomeViewModel.Factory(container, navigateCompose)
@@ -85,7 +98,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { viewModel.createProject() },
+                onClick = { showNewProjectSheet = true },
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.action_new_project)) }
             )
@@ -100,9 +113,81 @@ fun HomeScreen(
             ProjectGrid(
                 projects = projects,
                 onOpenCompose = { id -> viewModel.touch(id); onOpenCompose(id) },
+                onOpenCapture = { id -> viewModel.touch(id); onOpenCapture(id) },
                 onLongPressDelete = viewModel::delete,
                 modifier = Modifier.padding(padding)
             )
+        }
+    }
+
+    if (showNewProjectSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showNewProjectSheet = false },
+            sheetState = sheetState
+        ) {
+            NewProjectSheet(
+                presets = HomeViewModel.FRAME_COUNT_PRESETS,
+                onConfirm = { frameCount ->
+                    viewModel.createProjectWith(frameCount) { id ->
+                        navigateCapture(id)
+                    }
+                    showNewProjectSheet = false
+                    coroutineScope.launch { sheetState.hide() }
+                },
+                onCancel = {
+                    showNewProjectSheet = false
+                    coroutineScope.launch { sheetState.hide() }
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NewProjectSheet(
+    presets: List<Int>,
+    onConfirm: (Int) -> Unit,
+    onCancel: () -> Unit
+) {
+    var selected by rememberSaveable { mutableStateOf(presets.first()) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "选择合成张数",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Text(
+            text = "想要几层叠在一起? 常见组合: 2 / 3 / 4 / 6 / 8。",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            presets.forEach { n ->
+                FilterChip(
+                    selected = selected == n,
+                    onClick = { selected = n },
+                    label = { Text("${n} 张") }
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+        ) {
+            androidx.compose.material3.TextButton(onClick = onCancel) {
+                Text("取消")
+            }
+            androidx.compose.material3.Button(onClick = { onConfirm(selected) }) {
+                Text("创建并开始拍摄")
+            }
         }
     }
 }
@@ -112,6 +197,7 @@ fun HomeScreen(
 private fun ProjectGrid(
     projects: List<ProjectEntity>,
     onOpenCompose: (String) -> Unit,
+    onOpenCapture: (String) -> Unit,
     onLongPressDelete: (ProjectEntity) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -125,7 +211,8 @@ private fun ProjectGrid(
         items(projects, key = { it.id }) { project ->
             ProjectCard(
                 project = project,
-                onClick = { onOpenCompose(project.id) },
+                onOpenCompose = { onOpenCompose(project.id) },
+                onOpenCapture = { onOpenCapture(project.id) },
                 onLongPress = { onLongPressDelete(project) }
             )
         }
@@ -136,7 +223,8 @@ private fun ProjectGrid(
 @Composable
 private fun ProjectCard(
     project: ProjectEntity,
-    onClick: () -> Unit,
+    onOpenCompose: () -> Unit,
+    onOpenCapture: () -> Unit,
     onLongPress: () -> Unit
 ) {
     Card(
@@ -148,7 +236,7 @@ private fun ProjectCard(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .combinedClickable(onClick = onClick, onLongClick = onLongPress)
+                .combinedClickable(onClick = onOpenCompose, onLongClick = onLongPress)
         ) {
             Box(
                 modifier = Modifier
@@ -175,6 +263,18 @@ private fun ProjectCard(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2
+                )
+            }
+            IconButton(
+                onClick = onOpenCapture,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.CameraAlt,
+                    contentDescription = stringResource(R.string.action_open_camera),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }

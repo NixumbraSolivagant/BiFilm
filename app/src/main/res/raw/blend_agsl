@@ -1,12 +1,15 @@
 // BiFilm core blend shader.
 //
-// 6 种混合模式 (对应 Photoshop/胶片多重曝光):
-//   0 = Screen        (胶片最常用, 负片多次曝光)
-//   1 = Additive      (纯加法, 需手动曝光补偿)
-//   2 = Multiply      (正片叠底, 适合亮背景上的暗物)
-//   3 = Lighten       (取亮)
-//   4 = Darken        (取暗)
-//   5 = Average       (自动平均)
+// 6 种混合模式 (依据 Nikon Z7 / Canon 1DX III / Adobe / Howard Grill 公式定义):
+//   0 = Screen        (1 - (1-a)(1-b·gain),  胶片负片多次曝光默认)
+//   1 = Additive      (clamp(a + b·gain, 0, 1),  胶片光量累加, 需手动减档)
+//   2 = Multiply      (a * b·gain,             暗部叠加)
+//   3 = Lighten       (max(a, b·gain),          每像素取亮)
+//   4 = Darken        (min(a, b·gain),          每像素取暗)
+//   5 = Average       (同 Additive, 但 upstream 已经把 gain 归一化为 2^stops / N;
+//                                            见 Nikon Z7 官方说明 "the gain for each
+//                                            exposure is divided by the total number
+//                                            of exposures (1/2 for 2, 1/3 for 3, ...)").
 //
 // 每帧把累积 (uAccumulated) 与当前层 (uIncoming) 在当前层的蒙版 (uMaskIncoming)
 // 控制下, 按 uOpacity + uExposureGain 混合, 写回 accumulator.
@@ -19,7 +22,7 @@ uniform shader uMaskIncoming;  // 当前层蒙版, alpha 通道; 无蒙版传全
 
 uniform int uMode;             // 0..5
 uniform float uOpacity;        // 0..1
-uniform float uExposureGain;   // 2^stops, 例 -1 -> 0.5, +2 -> 4
+uniform float uExposureGain;   // 2^stops, 例 -1 -> 0.5, +2 -> 4. AVERAGE 模式下上游已除以 N.
 uniform float2 uSize;          // 输出分辨率 (px)
 
 half4 main(float2 frag) {
@@ -29,10 +32,10 @@ half4 main(float2 frag) {
 
     half4 mixed;
     if (uMode == 0) {
-        // Screen
+        // Screen (胶片负片多重曝光默认)
         mixed = half4(1.0) - (half4(1.0) - a) * (half4(1.0) - b);
     } else if (uMode == 1) {
-        // Additive (clamp 不交给 shader, 留给后端做 tonemap, 这里做软饱和)
+        // Additive (clamp 由处理器后端软饱和保证)
         mixed = a + b;
     } else if (uMode == 2) {
         // Multiply
@@ -44,8 +47,9 @@ half4 main(float2 frag) {
         // Darken
         mixed = min(a, b);
     } else {
-        // Average
-        mixed = (a + b) * half(0.5);
+        // Average (Nikon Z7 / Canon 1DX III 规范: gain 已被 use case 归一化为 2^stops / N,
+        // 走 Additive 路径即等价于"自动曝光补偿的胶片光量累加")
+        mixed = a + b;
     }
 
     // 线性插值: 由 m * uOpacity 控制这一层在当前像素上替换 a 的强度.

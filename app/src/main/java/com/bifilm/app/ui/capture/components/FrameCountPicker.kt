@@ -21,7 +21,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 fun FrameCountPicker(
     selected: Int,
     onSelect: (Int) -> Unit,
-    options: List<Int> = listOf(2, 3, 4, 5, 6, 7, 8, 9),
+    options: List<Int> = listOf(2, 3, 4, 6, 8),
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier.fillMaxWidth()) {

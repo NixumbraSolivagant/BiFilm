@@ -64,6 +64,13 @@ class CameraFrameBridge(private val context: Context) {
         this.provider = provider
         this.ownerRef = lifecycleOwner
 
+        // 幂等: 同一 owner 上已绑定就直接跳过, 否则重启.
+        if (camera != null && ownerRef === lifecycleOwner) {
+            Logger.d(TAG, "preview already bound, skip rebind")
+            return
+        }
+        provider.unbindAll()
+
         val previewUseCase = Preview.Builder().build().apply {
             setSurfaceProvider(surfaceProvider)
         }
@@ -77,7 +84,6 @@ class CameraFrameBridge(private val context: Context) {
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
             .build()
 
-        provider.unbindAll()
         camera = provider.bindToLifecycle(
             lifecycleOwner,
             CameraSelector.DEFAULT_BACK_CAMERA,

@@ -271,12 +271,26 @@ class GlEsBlendHost(context: Context) : BlendHost {
                 vec4 b = texture2D(uIncoming, vTexCoord) * uExposureGain;
                 float m = texture2D(uMaskIncoming, vTexCoord).a;
                 vec4 mixed;
-                if (uMode == 0) mixed = vec4(1.0) - (vec4(1.0) - a) * (vec4(1.0) - b);
-                else if (uMode == 1) mixed = a + b;
-                else if (uMode == 2) mixed = a * b;
-                else if (uMode == 3) mixed = max(a, b);
-                else if (uMode == 4) mixed = min(a, b);
-                else mixed = (a + b) * 0.5;
+                if (uMode == 0) {
+                    // Screen (胶片负片多重曝光默认, 公式 1-(1-a)(1-b))
+                    mixed = vec4(1.0) - (vec4(1.0) - a) * (vec4(1.0) - b);
+                } else if (uMode == 1) {
+                    // Additive (胶片光量累加, 用户手动减档)
+                    mixed = a + b;
+                } else if (uMode == 2) {
+                    // Multiply
+                    mixed = a * b;
+                } else if (uMode == 3) {
+                    // Lighten
+                    mixed = max(a, b);
+                } else if (uMode == 4) {
+                    // Darken
+                    mixed = min(a, b);
+                } else {
+                    // Average (uMode == 5): 走 Additive 路径,
+                    // 因为 use case 已按 Nikon Z7 规范把 gain 归一化为 2^stops / N.
+                    mixed = a + b;
+                }
                 gl_FragColor = mix(a, mixed, m * uOpacity);
             }
         """.trimIndent()
