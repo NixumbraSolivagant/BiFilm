@@ -14,7 +14,13 @@ data class ProjectEntity(
     val frameCount: Int,
     val frameWidth: Int,
     val frameHeight: Int,
-    val thumbnailPath: String?
+    val thumbnailPath: String?,
+    /** 所属胶卷 id (FK by convention, 不加外键方便跨版本迁移). */
+    val filmStockId: String = "foma_pan_100",
+    /** 在该胶卷内的"张编号" (0..ROLL_CAPACITY). 0 表示空白画幅. */
+    val frameIndexInRoll: Int = 1,
+    /** 用户填写的拍摄事件说明 (生日/聚会/旅行). */
+    val eventNote: String? = null
 )
 
 @Entity(

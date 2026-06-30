@@ -7,6 +7,7 @@ import com.bifilm.app.data.db.LayerDao
 import com.bifilm.app.data.db.LayerEntity
 import com.bifilm.app.data.db.ProjectDao
 import com.bifilm.app.data.db.ProjectEntity
+import com.bifilm.app.data.prefs.SettingsRepository
 import com.bifilm.app.di.AppContainer
 import com.bifilm.app.domain.model.BlendMode
 import com.bifilm.app.domain.model.ScenePreset
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,6 +31,7 @@ class ComposeViewModel(
     val projectId: String,
     private val projectDao: ProjectDao,
     private val layerDao: LayerDao,
+    private val settingsRepository: SettingsRepository,
     private val compose: ComposeLayersUseCase,
     private val addLayer: AddLayerUseCase,
     private val removeLayer: RemoveLayerUseCase
@@ -55,9 +58,19 @@ class ComposeViewModel(
     /**
      * 当前选中的"场景"——用户视角的预设, 不是底层 BlendMode.
      * 选场景会自动把 mode 写到每张 layer (后端仍然按权威公式合成).
+     * 初始值从 SettingsRepository 的"默认场景"读出.
      */
     private val _scene = MutableStateFlow(ScenePresets.default())
     val scene: StateFlow<ScenePreset> = _scene.asStateFlow()
+
+    init {
+        // VM 创建时把设置里的"默认场景"灌进来 (只跑一次).
+        viewModelScope.launch {
+            val s = settingsRepository.settings.first()
+            val initialScene = ScenePresets.byId(s.defaultSceneId) ?: ScenePresets.default()
+            _scene.value = initialScene
+        }
+    }
 
     /**
      * 黑白开关: true = 输出灰度 (Luminosity 0.299R + 0.587G + 0.114B).
@@ -167,6 +180,7 @@ class ComposeViewModel(
             projectId = projectId,
             projectDao = container.database.projectDao(),
             layerDao = container.database.layerDao(),
+            settingsRepository = container.settingsRepository,
             compose = container.composeLayersUseCase,
             addLayer = container.addLayerUseCase,
             removeLayer = container.removeLayerUseCase

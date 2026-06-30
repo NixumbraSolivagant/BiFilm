@@ -12,6 +12,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,8 +54,8 @@ import com.bifilm.app.R
 import com.bifilm.app.render.camera.CameraFrameBridge
 import com.bifilm.app.ui.capture.components.ApertureIndicator
 import com.bifilm.app.ui.capture.components.ExposurePicker
-import com.bifilm.app.ui.capture.components.FrameCountPicker
 import com.bifilm.app.ui.capture.components.ShutterButton
+import com.bifilm.app.ui.capture.components.ZoomPicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +92,17 @@ fun CaptureScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val frameCount by viewModel.frameCount.collectAsStateWithLifecycle()
     val layers by viewModel.layers.collectAsStateWithLifecycle()
+    val zoomRatio by viewModel.zoomRatio.collectAsStateWithLifecycle()
+    val zoomMin by viewModel.zoomMin.collectAsStateWithLifecycle()
+    val zoomMax by viewModel.zoomMax.collectAsStateWithLifecycle()
+    val equivFocalAt1x by viewModel.equivFocalAt1x.collectAsStateWithLifecycle()
+    val exposureStops by viewModel.exposureStops.collectAsStateWithLifecycle()
     val currentState: CaptureViewModel.SessionState = state
+
+    // 张数上限: 项目创建时固定, layers.size 是当前已有层数.
+    // 拍满后 shutter + 相册都禁用.
+    val atFrameLimit = layers.size >= frameCount
+    val shutterEnabled = currentState !is CaptureViewModel.SessionState.Capturing && !atFrameLimit
 
     Scaffold(
         topBar = {
@@ -132,8 +143,8 @@ fun CaptureScreen(
                 Box(modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp)) {
                     ApertureIndicator(
                         frameCount = layers.size.coerceAtLeast(0),
-                        totalFrames = if (frameCount < 2) 2 else frameCount,
-                        exposureStops = viewModel.exposureStops.value
+                        totalFrames = frameCount,
+                        exposureStops = exposureStops
                     )
                 }
 
@@ -157,17 +168,48 @@ fun CaptureScreen(
 
             Column(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(text = stringResource(R.string.label_frame_count), style = MaterialTheme.typography.labelMedium)
-                FrameCountPicker(
-                    selected = if (frameCount < 2) 2 else frameCount,
-                    onSelect = viewModel::setFrameCount
+                // 张数 (项目创建时已固定, 此处只展示, 不能改).
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_frame_count),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.badge_frames_fixed, frameCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+                // 焦段: 0.5x / 1x / 2x / 3x 快捷档
+                Text(
+                    text = stringResource(R.string.label_zoom),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(4.dp))
+                ZoomPicker(
+                    ratio = zoomRatio,
+                    min = zoomMin,
+                    max = zoomMax,
+                    equivFocalAt1x = equivFocalAt1x,
+                    onPick = viewModel::setZoom
+                )
+                Spacer(Modifier.height(2.dp))
                 Text(text = stringResource(R.string.label_exposure), style = MaterialTheme.typography.labelMedium)
                 ExposurePicker(
-                    stops = viewModel.exposureStops.value,
+                    stops = exposureStops,
                     onChange = viewModel::setExposure
                 )
                 Spacer(Modifier.height(8.dp))
@@ -181,7 +223,17 @@ fun CaptureScreen(
                                 )
                             }
                         },
-                        isEnabled = currentState !is CaptureViewModel.SessionState.Capturing
+                        isEnabled = shutterEnabled
+                    )
+                }
+                // 剩余张数提示 (拍满后显示提示)
+                if (atFrameLimit) {
+                    Text(
+                        text = stringResource(R.string.badge_remaining, layers.size, frameCount),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
                 Spacer(Modifier.height(8.dp))
@@ -192,7 +244,7 @@ fun CaptureScreen(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = currentState !is CaptureViewModel.SessionState.Capturing
+                    enabled = !atFrameLimit && currentState !is CaptureViewModel.SessionState.Capturing
                 ) {
                     Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
                     Spacer(Modifier.width(8.dp))

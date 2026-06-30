@@ -11,11 +11,18 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ProjectDao {
 
-    @Query("SELECT * FROM projects ORDER BY updatedAt DESC")
+    /** 全量: 按胶卷分组, 同胶卷内按张编号升序. */
+    @Query("SELECT * FROM projects ORDER BY filmStockId DESC, frameIndexInRoll ASC")
     fun observeAll(): Flow<List<ProjectEntity>>
 
     @Query("SELECT * FROM projects WHERE id = :id")
     suspend fun findById(id: String): ProjectEntity?
+
+    /**
+     * 同一胶卷里的最大张编号, 用作"下一张"计算.
+     */
+    @Query("SELECT MAX(frameIndexInRoll) FROM projects WHERE filmStockId = :filmStockId")
+    suspend fun maxFrameIndex(filmStockId: String): Int?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(project: ProjectEntity)

@@ -39,4 +39,13 @@
     <string name="color_color">彩色</string>
     <string name="color_mono">黑白</string>
     <string name="hint_no_layers">还没有图层，去拍照页拍两张再回来</string>
+    <string name="badge_layers">%1$d 层</string>
+    <string name="badge_frames_fixed">%1$d 张 · 项目固定</string>
+    <string name="badge_tip">提示</string>
+    <string name="label_zoom">焦段</string>
+    <string name="badge_remaining">已拍 %1$d 张 / 共 %2$d 张</string>
+    <string name="alert_delete_title">删除图层</string>
+    <string name="alert_delete_message">确定要删除这张图层吗？</string>
+    <string name="action_delete">删除</string>
+    <string name="action_cancel">取消</string>
 </resources>

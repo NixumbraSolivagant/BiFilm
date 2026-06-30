@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  App 图标前景: 中央大号镜头 + 一条垂直胶片条穿过, 镜头内含光圈.
+  - viewBox 108x108; 安全区在 18..90 范围内, 镜头和胶片都在其中.
+  - 主体配色用 ink_primary(暗)/film_glow(亮)/film_warm(金属) 三色.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 垂直胶片条 (从顶到底贯穿, 镜头外左右两侧) -->
+    <!-- 主体条带: 黑色窄长方形, 左右两边各留 16dp 边距 -->
+    <path
+        android:fillColor="#0E1116"
+        android:pathData="M50,8 L58,8 L58,100 L50,100 z" />
+
+    <!-- 胶片上的"齿孔": 8 对, 上下交错 -->
+    <!-- 上半段 4 对齿孔 -->
+    <path android:fillColor="#F5EFDF"
+        android:pathData="M51,16 L57,16 L57,20 L51,20 z" />
+    <path android:fillColor="#F5EFDF"
+        android:pathData="M51,28 L57,28 L57,32 L51,32 z" />
+    <path android:fillColor="#F5EFDF"
+        android:pathData="M51,40 L57,40 L57,44 L51,44 z" />
+    <!-- 镜头背后那段省略齿孔 (中间), 镜头下方继续 -->
+    <path android:fillColor="#F5EFDF"
+        android:pathData="M51,72 L57,72 L57,76 L51,76 z" />
+    <path android:fillColor="#F5EFDF"
+        android:pathData="M51,84 L57,84 L57,88 L51,88 z" />
+    <path android:fillColor="#F5EFDF"
+        android:pathData="M51,96 L57,96 L57,100 L51,100 z" />
+
+    <!-- 中央大号镜头外圈 (金属圈) - 描边 -->
+    <!-- 外圈描边 (深褐) -->
+    <path
+        android:fillColor="#C8A467"
+        android:pathData="M54,54m-26,0a26,26 0,1 1,52 0a26,26 0,1 1,-52 0" />
+    <!-- 内层 (黑) -->
+    <path
+        android:fillColor="#0E1116"
+        android:pathData="M54,54m-22,0a22,22 0,1 1,44 0a22,22 0,1 1,-44 0" />
+    <!-- 中层 (暖金属圈) -->
+    <path
+        android:fillColor="#C8A467"
+        android:pathData="M54,54m-19,0a19,19 0,1 1,38 0a19,19 0,1 1,-38 0" />
+    <!-- 内圈 (深褐, 镜片) -->
+    <path
+        android:fillColor="#1A140D"
+        android:pathData="M54,54m-15,0a15,15 0,1 1,30 0a15,15 0,1 1,-30 0" />
+
+    <!-- 镜片内的光圈叶片 (6 片, 旋转扇形) -->
+    <!-- 6 片叶子均用 film_glow 半透明, 营造镜头反光 -->
+    <group>
+        <!-- 上 -->
+        <path
+            android:fillColor="#33E9D5A1"
+            android:pathData="M54,54 L54,42 A12,12 0 0 1 64.39,48 Z" />
+        <!-- 右上 -->
+        <path
+            android:fillColor="#33E9D5A1"
+            android:pathData="M54,54 L63.96,48.78 A12,12 0 0 1 64.39,60 Z" />
+        <!-- 右下 -->
+        <path
+            android:fillColor="#33E9D5A1"
+            android:pathData="M54,54 L64.39,60 A12,12 0 0 1 54,66 Z" />
+        <!-- 下 -->
+        <path
+            android:fillColor="#33E9D5A1"
+            android:pathData="M54,54 L54,66 A12,12 0 0 1 43.61,60 Z" />
+        <!-- 左下 -->
+        <path
+            android:fillColor="#33E9D5A1"
+            android:pathData="M54,54 L43.61,60 A12,12 0 0 1 43.04,48.78 Z" />
+        <!-- 左上 -->
+        <path
+            android:fillColor="#33E9D5A1"
+            android:pathData="M54,54 L43.04,48.78 A12,12 0 0 1 54,42 Z" />
+    </group>
+
+    <!-- 中心点 (亮点) -->
+    <path
+        android:fillColor="#E9D5A1"
+        android:pathData="M54,54m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+    <!-- 高光反光 (左上小高光, 经典相机镜头标记) -->
+    <path
+        android:fillColor="#CCF5EFDF"
+        android:pathData="M46,48 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0" />
+
+    <!-- 镜头外圈高光环 (右上弧) -->
+    <path android:strokeColor="#E9D5A1"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:pathData="M72,42 A22,22 0 0 1 76,58" />
+
+    <!-- 镜头下方一个小标签感胶片曝光格 (暗示 "f/8") -->
+    <path
+        android:fillColor="#E9D5A1"
+        android:pathData="M46,84 L62,84 L62,90 L46,90 z" />
+    <!-- 数字 "1" 在小胶片格里 -->
+    <path
+        android:fillColor="#0E1116"
+        android:pathData="M52,85 L56,85 L56,89 L52,89 z" />
+
+    <!-- 顶部一个小三角快门符号 (细微装饰, 暗示相机) -->
+    <path
+        android:fillColor="#C8A467"
+        android:pathData="M52,18 L56,18 L54,22 z" />
+</vector>
