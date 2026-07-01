@@ -57,4 +57,7 @@ interface LayerDao {
 
     @Query("DELETE FROM layers WHERE projectId = :projectId")
     suspend fun clearForProject(projectId: String)
+
+    @Query("SELECT COUNT(*) FROM layers WHERE projectId = :projectId")
+    suspend fun countForProject(projectId: String): Int
 }

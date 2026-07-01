@@ -22,6 +22,7 @@ import java.util.UUID
 
 class HomeViewModel(
     private val projectDao: ProjectDao,
+    private val layerDao: com.bifilm.app.data.db.LayerDao,
     private val settingsRepository: SettingsRepository,
     private val onProjectCreated: (String) -> Unit
 ) : ViewModel() {
@@ -42,7 +43,8 @@ class HomeViewModel(
             list.sortedByDescending { it.updatedAt }.map { project ->
                 HomeCardItem(
                     project = project,
-                    stock = FilmStocks.byId(project.filmStockId)
+                    stock = FilmStocks.byId(project.filmStockId),
+                    layerCount = layerDao.countForProject(project.id)
                 )
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -138,6 +140,7 @@ class HomeViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
             HomeViewModel(
                 projectDao = container.database.projectDao(),
+                layerDao = container.database.layerDao(),
                 settingsRepository = container.settingsRepository,
                 onProjectCreated = onProjectCreated
             ) as T
@@ -168,5 +171,6 @@ data class CreateProjectModel(
  */
 data class HomeCardItem(
     val project: ProjectEntity,
-    val stock: FilmStock
+    val stock: FilmStock,
+    val layerCount: Int = 0
 )

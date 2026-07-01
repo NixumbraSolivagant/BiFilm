@@ -48,4 +48,24 @@
     <string name="alert_delete_message">确定要删除这张图层吗？</string>
     <string name="action_delete">删除</string>
     <string name="action_cancel">取消</string>
+
+    <!-- 视觉优化新增 -->
+    <string name="subtitle_home">Projects · %1$d 卷</string>
+    <string name="subtitle_projects">已冲印</string>
+    <string name="subtitle_capture">拍满 · %1$d/%2$d</string>
+    <string name="subtitle_capture_in_progress">第 %1$d 张 / 共 %2$d 张</string>
+    <string name="subtitle_compose">%1$d 张待合成 · %2$s</string>
+    <string name="subtitle_export">出片</string>
+    <string name="subtitle_settings">默认值</string>
+
+    <string name="badge_blank">未拍</string>
+    <string name="badge_done">已满</string>
+    <string name="badge_capture_progress">已拍 %1$d/%2$d</string>
+    <string name="badge_limit_reached">已拍满 · 去合成页</string>
+    <string name="cd_back_to_capture">回取景</string>
+    <string name="cd_delete_project">删除</string>
+    <string name="cd_settings">设置</string>
+    <string name="cd_recompose">重新合成</string>
+    <string name="dialog_delete_title">删除这个项目?</string>
+    <string name="dialog_delete_message">「%1$s」及其全部图层将被删除.</string>
 </resources>
